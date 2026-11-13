@@ -5,7 +5,7 @@ A flight data logger for small vehicles like drones and model rockets. Will reco
 ## Hardware
 - Raspberry Pi Pico (RP2040)
 - BMP388 barometric pressure and temperature sensor breakout
-- LSM6SDOX accelerometer and gyroscope breakout
+- LSM6DSOX accelerometer and gyroscope breakout
 - microSD breakout
 
 ## Software
@@ -14,9 +14,11 @@ A flight data logger for small vehicles like drones and model rockets. Will reco
 
 ## Interfaces
 - I2C
-    - Bus details: I2C1, BMP388 SDA GP14, SCLGP15
+    - Bus details: I2C1 (BMP388 SDA GP14, SCL GP15) (LSM6DSOX planned)
+- SPI (microSD, planned)
 
 ## Status
-- BMP388 is configured over I2C, reads raw temperature and pressure data
-- Trimming coefficients indexed from BMP388 NVM read, sign conversion in progress
-- Calibration for meaningful values next
+- Implemented BMP388 trim decoding and floating-point compensation formulas from Bosch datasheet
+- Prints calibrated and compensated pressure and temperature in pascals and Celsius from BMP388
+- Prints calculated pressure altitude in meters
+- Next up: reference pressure initialization on startup
