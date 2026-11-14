@@ -4,7 +4,7 @@ import time
 import struct
 
 
-
+# I2C stuffs
 i2c = I2C(1, scl = Pin(15), sda = Pin(14))                  # create I2C object
 
 i2c.writeto_mem(0x77, 0x1B, b'\x33')                        # change power mode to normal
@@ -13,8 +13,10 @@ i2c.writeto_mem(0x77, 0x1D, b'\x02')                        # ODR: output data r
 
 i2c.writeto_mem(0x77, 0x1C, b'\x02')                        # OSR: standard oversampling, x4 pressure x1 temperature
 
-trims = i2c.readfrom_mem(0x77, 0x31, 21)                    # get trimming coefficients
+trims = i2c.readfrom_mem(0x77, 0x31, 21)                    # get calibration coefficients
 
+
+# calibration coefficients
 nvm_par_t1, nvm_par_t2, nvm_par_t3, nvm_par_p1, nvm_par_p2, nvm_par_p3, nvm_par_p4, nvm_par_p5, nvm_par_p6, nvm_par_p7, nvm_par_p8, nvm_par_p9, nvm_par_p10, nvm_par_p11 = struct.unpack("<HHbhhbbHHbbhbb", trims)      
 
 par_t1 = nvm_par_t1 / 2**-8
@@ -59,12 +61,32 @@ def compensate_press(t_lin, uncomp_press):
     return partial_out1 + partial_out2 + partial_data4
 
 
+# ground pressure initialization
+press_init = 0
+
+for i in range(103):
+    data = i2c.readfrom_mem(0x77, 0x04, 6)
+
+    uncomp_press = data[0] | data[1]<<8 | data[2]<<16
+    uncomp_temp = data[3] | data[4]<<8 | data[5]<<16
+
+    t_lin = compensate_temp(uncomp_temp)
+    comp_press = compensate_press(t_lin, uncomp_press)
+
+    if i > 2:
+        press_init = press_init + comp_press
+
+    dot_count = (i // 10) % 4
+    print("\rInitializing", ". " * dot_count, " " * (6 - dot_count), end = "", sep = "")
+    time.sleep(0.025)
+
+ref_press = press_init / 100
+
+
 # barometric formula constants
 ref_temp = 288.15
 temp_lapse = 0.0065
-ref_press = 101325
 baro_exp = 5.2559
-
 
 # altitude calculation
 def calc_alt(comp_press):

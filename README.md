@@ -18,7 +18,5 @@ A flight data logger for small vehicles like drones and model rockets. Will reco
 - SPI (microSD, planned)
 
 ## Status
-- Implemented BMP388 trim decoding and floating-point compensation formulas from Bosch datasheet
-- Prints calibrated and compensated pressure and temperature in pascals and Celsius from BMP388
-- Prints calculated pressure altitude in meters
-- Next up: reference pressure initialization on startup
+- BMP388 working
+- Prints altitude relative to startup initializiation, pressure, temperature
